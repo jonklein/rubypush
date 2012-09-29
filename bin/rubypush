@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+begin
+  require 'rubypush'
+rescue LoadError
+  require 'rubygems'
+  require 'rubypush'
+end
+
+@interpreter = RubyPush::Interpreter.new
+
+unless ARGV.length == 1 
+  puts "Usage: #{$0} push-program"
+  exit 1
+end
+
+program = @interpreter.parse(ARGV[0])
+
+@interpreter.execute(program)
+
+puts @interpreter.stacks.inspect

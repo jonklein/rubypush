@@ -8,8 +8,8 @@ Gem::Specification.new do |gem|
   gem.version       = RubyPush::VERSION
   gem.authors       = ["Jon Klein"]
   gem.email         = ["jk@artificial.com"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
+  gem.description   = %q{A Ruby implementation of the Push programming language}
+  gem.summary       = %q{A Ruby implementation of the Push programming language}
   gem.homepage      = ""
 
   gem.files         = `git ls-files`.split($/)
