@@ -138,23 +138,35 @@ module RubyPush
     # code instructions
 
     def append(interpreter, stack)
+      if stack.length > 1
+        a = to_list(stack.pop)
+        b = to_list(stack.pop)
+        stack.push(a + b)
+      end
     end
 
     def do(interpreter, stack)
-      interpreter.stack(:exec).push("code.pop", stack.last) if stack.length > 1
+      interpreter.stack(:exec).push("code.pop", stack.pop) if stack.length > 0
     end
 
     def dostar(interpreter, stack)
-      interpreter.stack(:exec).push(stack.pop) if stack.length > 1
+      interpreter.stack(:exec).push(stack.pop) if stack.length > 0
     end
     
     def dotimes(interpreter, stack)
+      interpreter.stack(:exec).push([0, interpreter.stack(:integer).pop - 1, "code.quote", to_list(stack.pop).push("integer.pop"), "code.do*range"]) if stack.length > 0 && interpreter.stack(:integer).length > 0
     end
 
     def docount(interpreter, stack)
+      interpreter.stack(:exec).push([0, interpreter.stack(:integer).pop - 1, "code.quote", stack.pop, "code.do*range"]) if stack.length > 0 && interpreter.stack(:integer).length > 0
     end
 
     def dorange(interpreter, stack)
+      if stack.length > 0 && interpreter.stack(:integer).length > 1
+        start = interpreter.stack(:integer).pop
+        finish = interpreter.stack(:integer).pop
+        interpreter.stack(:exec).push()
+      end
     end
 
     def cons(interpreter, stack)
@@ -212,6 +224,12 @@ module RubyPush
     end
 
     def list(interpreter, stack)
+      if stack.length > 1
+        a = stack.pop
+        b = stack.pop
+        
+        stack.push([a, b])
+      end
     end
 
     def length(interpreter, stack)
@@ -219,6 +237,12 @@ module RubyPush
     end
 
     def member(interpreter, stack)
+      if stack.length > 1
+        code = stack.pop
+        sub = stack.pop
+        
+        interpreter.stack(:boolean).push(!code.index(sub).nil?)
+      end
     end
 
     def noop(interpreter, stack)

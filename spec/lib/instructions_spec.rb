@@ -30,13 +30,13 @@ describe RubyPush::Instructions do
     end
 
     it 'should execute stack.= with true result' do
-      @interpreter.stack(:generic).push([1,2,3], [1,2,3])
+      @interpreter.stack(:generic).push([1, 2, 3] , [1, 2, 3] )
       RubyPush::Instructions.execute(@interpreter, "generic.=")
       @interpreter.stack(:boolean).should == [true]
     end
 
     it 'should execute stack.= with false reslut' do
-      @interpreter.stack(:generic).push([1,2,3], [3,2,1])
+      @interpreter.stack(:generic).push([1, 2, 3] , [3,2,1])
       RubyPush::Instructions.execute(@interpreter, "generic.=")
       @interpreter.stack(:boolean).should == [false]
     end
@@ -153,37 +153,60 @@ describe RubyPush::Instructions do
     end
     
     it "should execute code.append" do
+      @interpreter.stack(:code).push([0], [1, 2, 3] )
+      RubyPush::Instructions.execute(@interpreter, "code.append")
+      @interpreter.stack(:code).should == [[1,2,3,0]]
     end
 
     it "should execute code.do" do
+      @interpreter.stack(:code).push([1, 2, 3] )
+      RubyPush::Instructions.execute(@interpreter, "code.do")
+      @interpreter.stack(:exec).should == ['code.pop', [1, 2, 3] ]
     end
 
     it "should execute code.dostar" do
+      @interpreter.stack(:code).push([1, 2, 3] )
+      RubyPush::Instructions.execute(@interpreter, "code.do")
+      @interpreter.stack(:exec).should == [[1, 2, 3] , 'code.pop']
     end
 
     it "should execute code.dotimes" do
+      @interpreter.stack(:code).push([1, 2, 3] )
+      @interpreter.stack(:integer).push(4)
+      RubyPush::Instructions.execute(@interpreter, "code.do")
+      @interpreter.stack(:exec).should == [ 0, 3, "exec.do*range", [1, 2, 3]  ]
     end
 
     it "should execute code.docount" do
+      @interpreter.stack(:code).push([1, 2, 3] )
+      @interpreter.stack(:integer).push(4)
+      RubyPush::Instructions.execute(@interpreter, "code.do")
+      @interpreter.stack(:exec).should == [ 0, 3, "exec.do*range", [1, 2, 3, integer.pop] ]
     end
 
     it "should execute code.dorange" do
+      @interpreter.stack(:code).push([1, 2, 3] )
+      @interpreter.stack(:integer).push(4, 6)
+      RubyPush::Instructions.execute(@interpreter, "code.dorange")
+      @interpreter.stack(:exec).should == [[1, 2, 3] , 6, [1, 2, 3] , 5, [1, 2, 3] , 4]
+      @interpreter.stack(:code).should == []
+      @interpreter.stack(:integer).should == []
     end
 
     it "should execute code.cons" do
-      @interpreter.stack(:code).push(0, [1,2,3])
+      @interpreter.stack(:code).push(0, [1, 2, 3] )
       RubyPush::Instructions.execute(@interpreter, "code.cons")
       @interpreter.stack(:code).should == [[0,1,2,3]]
     end
 
     it "should execute code.car" do
-      @interpreter.stack(:code).push([1,2,3])
+      @interpreter.stack(:code).push([1, 2, 3] )
       RubyPush::Instructions.execute(@interpreter, "code.car")
       @interpreter.stack(:code).should == [1]
     end
 
     it "should execute code.cdr" do
-      @interpreter.stack(:code).push([1,2,3])
+      @interpreter.stack(:code).push([1, 2, 3] )
       RubyPush::Instructions.execute(@interpreter, "code.cdr")
       @interpreter.stack(:code).should == [[2,3]]
     end
@@ -201,21 +224,29 @@ describe RubyPush::Instructions do
     end
 
     it "should execute code.container" do
+      @interpreter.stack(:code).push([ [ 10 ] ], [ 5, 6, 7, [ 8, [ 10 ] ] ])
+      RubyPush::Instructions.execute(@interpreter, "code.container")
+      @interpreter.stack(:code).should == [ [ 8, [ 10 ] ] ]
     end
 
     it "should execute code.contains with true result" do
-      @interpreter.stack(:code).push([ 9, 10 ], [ 5, 6, 7, [ 8, [ 9,10 ] ] ])
+      @interpreter.stack(:code).push([ 9, 10 ], [ 5, 6, 7, [ 8, [ 9, 10 ] ] ])
       RubyPush::Instructions.execute(@interpreter, "code.contains")
       @interpreter.stack(:boolean).should == [true]
     end
 
     it "should execute code.contains with false result" do
-      @interpreter.stack(:code).push([ 9, 8 ], [ 5, 6, 7, [ 8, [ 9,10 ] ] ])
+      @interpreter.stack(:code).push([ 9, 8 ], [ 5, 6, 7, [ 8, [ 9, 10 ] ] ])
       RubyPush::Instructions.execute(@interpreter, "code.contains")
       @interpreter.stack(:boolean).should == [false]
     end
 
     it "should execute code.extract" do
+      @interpreter.stack(:code).push([ 5, 6, 7, [ 8, [ 9, 10 ] ] ])
+      @interpreter.stack(:integer).push(6)
+      RubyPush::Instructions.execute(@interpreter, "code.extract")
+      @interpreter.stack(:code).should == [ [ 8, [ 10 ] ] ]
+      @interpreter.stack(:integer).should == []
     end
 
     it "should execute code.if with true condition" do
@@ -237,6 +268,9 @@ describe RubyPush::Instructions do
     end
 
     it "should execute code.list" do
+      @interpreter.stack(:code).push(5, 6)
+      RubyPush::Instructions.execute(@interpreter, "code.list")
+      @interpreter.stack(:code).should == [ [ 5, 6 ] ]
     end
 
     it "should execute code.length" do
@@ -245,7 +279,18 @@ describe RubyPush::Instructions do
       @interpreter.stack(:integer).should == [4]
     end
 
-    it "should execute code.member" do
+    it "should execute code.member with false result" do
+      @interpreter.stack(:code).push(1, [2, 3, 4, [ 1 ] ])
+      RubyPush::Instructions.execute(@interpreter, "code.member")
+      @interpreter.stack(:boolean).should == [false]
+      @interpreter.stack(:code).should == []
+    end
+
+    it "should execute code.member with true result" do
+      @interpreter.stack(:code).push(1, [2, 3, 1, [ 1 ] ])
+      RubyPush::Instructions.execute(@interpreter, "code.member")
+      @interpreter.stack(:boolean).should == [true]
+      @interpreter.stack(:code).should == []
     end
 
     it "should execute code.noop" do
@@ -261,6 +306,11 @@ describe RubyPush::Instructions do
     end
 
     it "should execute code.nthcdr" do
+      @interpreter.stack(:code).push([5, 6, 7, [8,9]])
+      @interpreter.stack(:integer).push(2)
+      RubyPush::Instructions.execute(@interpreter, "code.nthcdr")
+      @interpreter.stack(:code).should == [7]
+      @interpreter.stack(:integer).should == []
     end
 
     it "should execute code.null with false result" do
